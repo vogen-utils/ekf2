@@ -18,7 +18,7 @@
 #endif
 
 #ifndef	EKF2_DIM_MAX_STATE_EXP2
-#	define	EKF2_DIM_MAX_STATE_EXP2	4
+#	define	EKF2_DIM_MAX_STATE_EXP2	3
 #endif
 
 #ifndef	EKF2_DIM_MAX_MEASUREMENT_EXP2
@@ -26,7 +26,7 @@
 #endif
 
 #ifndef	EKF2_DIM_MAX_CTL_EXP2
-#	define	EKF2_DIM_MAX_CTL_EXP2	1
+#	define	EKF2_DIM_MAX_CTL_EXP2	2
 #endif
 
 /** paremeters end */
