@@ -4,11 +4,13 @@
 /** parameters */
 
 #ifndef	ekf2_dim_t
-#	define ekf2_dim_t	unsigned
+	typedef	unsigned	ekf2_dim_t;
+#	define	ekf2_dim_t	ekf2_dim_t
 #endif
 
 #ifndef	ekf2_bool_t
-#	define ekf2_bool_t	unsigned
+	typedef	unsigned	ekf2_bool_t;
+#	define ekf2_bool_t	ekf2_bool_t
 #endif
 
 #ifndef	EKF2_REAL_BIT
@@ -48,7 +50,8 @@
 enum EKF2_RET_ {
 	EKF2_RET_OK,
 	EKF2_RET_NIL_HANDLE,
-	EKF2_RET_INIT_DIM_TOO_BIG
+	EKF2_RET_INIT_DIM_TOO_BIG,
+	EKF2_RET_UPDATE_FAILED_INV_SYM
 };
 
 enum EKF2_DIM_MAX_ {
@@ -64,14 +67,14 @@ typedef ekf2_real_t ekf2_vcreal_t __attribute__ ((vector_size (sizeof(ekf2_real_
 typedef	struct {
 	ekf2_vsreal_t(*m_func)(
 			const ekf2_vsreal_t* const ae2f_restrict	rd_x,
-			const ekf2_real_t* const ae2f_restrict		rd_u_opt,
+			const ekf2_vcreal_t* const ae2f_restrict	rd_u_opt,
 			const ekf2_real_t				c_dt,
 			ae2f_unused void*				h_usr
 		     );
 
 	void(*m_jac)(
 			const ekf2_vsreal_t* const ae2f_restrict	rd_x,
-			const ekf2_real_t* const ae2f_restrict		rd_u_opt,
+			const ekf2_vcreal_t* const ae2f_restrict	rd_u_opt,
 			const ekf2_real_t				c_dt,
 			ekf2_vsreal_t (* const ae2f_restrict		ret)[EKF2_DIM_MAX_STATE],
 			ae2f_unused void*				h_usr
@@ -115,7 +118,7 @@ enum EKF2_RET_ init_ekf2(
 		ekf2_func_measurement_t fn_measurement
 		);
 
-enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf2, const ekf2_real_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt);
-enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf2, const ekf2_vmreal_t* ae2f_restrict const rd_z);
+enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf2, const ekf2_vcreal_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt);
+enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf2, const ekf2_vmreal_t *ae2f_restrict const rd_z);
 
 #endif

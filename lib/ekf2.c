@@ -1,6 +1,6 @@
-#include "./ekf2.h"
+#include "ekf2.h"
+#include "./helpers.h"
 #include <ae2f/cc/branches/naive.h>
-#include <ae2f/cc/inline.h>
 
 enum EKF2_RET_ init_ekf2(
 		ekf2_ctx_t* ae2f_restrict h_ekf,
@@ -32,42 +32,7 @@ enum EKF2_RET_ init_ekf2(
 	return EKF2_RET_OK;
 }
 
-ae2f_inline_f	static void s_matmul_ss(
-		ekf2_vsreal_t (* ae2f_restrict const		ret)[EKF2_DIM_MAX_STATE],
-		const ekf2_vsreal_t (* ae2f_restrict const	rd_a)[EKF2_DIM_MAX_STATE],
-		const ekf2_vsreal_t (* ae2f_restrict const	rd_b)[EKF2_DIM_MAX_STATE],
-		const ekf2_dim_t				c_dim_state
-		) {
-	ekf2_vsreal_t	T[EKF2_DIM_MAX_STATE] = { 0, };
-
-	for(ekf2_dim_t	i = c_dim_state; i --> 0; )
-		for(ekf2_dim_t	j = c_dim_state; j --> 0; )
-			for(ekf2_dim_t k = c_dim_state; k --> 0; )
-				T[i][j] += (*rd_a)[i][k] * (*rd_b)[k][j];
-
-	for(ekf2_dim_t	i = EKF2_DIM_MAX_STATE; i --> 0; )
-		(*ret)[i] = T[i];
-}
-
-ae2f_inline_f	static void s_matmul_trans_ss(
-		ekf2_vsreal_t (* ae2f_restrict const		ret)[EKF2_DIM_MAX_STATE],
-		const ekf2_vsreal_t (* ae2f_restrict const	rd_a)[EKF2_DIM_MAX_STATE],
-		const ekf2_vsreal_t (* ae2f_restrict const	rd_b)[EKF2_DIM_MAX_STATE],
-		const ekf2_dim_t				c_dim_state
-		)
-{
-	ekf2_vsreal_t	T[EKF2_DIM_MAX_STATE] = { 0, };
-
-	for(ekf2_dim_t	i = c_dim_state; i --> 0; )
-		for(ekf2_dim_t	j = c_dim_state; j --> 0; )
-			for(ekf2_dim_t k = c_dim_state; k --> 0; )
-				T[i][j] += (*rd_a)[i][k] * (*rd_b)[j][k];
-
-	for(ekf2_dim_t	i = EKF2_DIM_MAX_STATE; i --> 0; )
-		(*ret)[i] = T[i];
-}
-
-enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_real_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt)
+enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vcreal_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt)
 {
 	ekf2_vsreal_t	STATE_TRANS_JACRET[EKF2_DIM_MAX_STATE];
 
@@ -112,66 +77,16 @@ enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_real_t* 
 	return EKF2_RET_OK;
 }
 
-ae2f_inline_f void s_mat_HPHT(
-		const ekf2_vsreal_t(* ae2f_restrict const rd_h)[EKF2_DIM_MAX_MEASUREMENT],
-		const ekf2_vsreal_t(* ae2f_restrict const rd_p)[EKF2_DIM_MAX_STATE],
-		ekf2_vmreal_t(* ae2f_restrict const ret)[EKF2_DIM_MAX_MEASUREMENT],
-		const ekf2_dim_t		c_dim_measure,
-		const ekf2_dim_t		c_dim_state
-		)
-{
-	ekf2_vsreal_t HP[EKF2_DIM_MAX_MEASUREMENT] = {0, };
-	for(ekf2_dim_t	i = c_dim_measure; i --> 0; )
-		for(ekf2_dim_t k = c_dim_state; k --> 0; )
-			for(ekf2_dim_t j = c_dim_state; j --> 0; )
-				HP[i][j] += (*rd_h)[i][k] * (*rd_p)[k][j];
-
-	for(ekf2_dim_t i = EKF2_DIM_MAX_MEASUREMENT; i --> 0; )
-		(*ret)[i] = (ekf2_vmreal_t) { 0, };
-
-	for(ekf2_dim_t	i = c_dim_measure; i --> 0; )
-		for(ekf2_dim_t k = c_dim_state; k --> 0; )
-			for(ekf2_dim_t j = c_dim_measure; j --> 0; )
-				(*ret)[i][j] += (HP)[i][k] * (*rd_h)[j][k];
-}
-
-extern ekf2_real_t	ekf2_real_sfx(sqrt)(const ekf2_real_t);
-
-ae2f_inline_f ekf2_bool_t	s_mat_inv_sym(
-		const ekf2_vmreal_t (* const ae2f_restrict	rd_a)[EKF2_DIM_MAX_MEASUREMENT],
-		const ekf2_vmreal_t (* const ae2f_restrict	ret_a_inv)[EKF2_DIM_MAX_MEASUREMENT],
-		const ekf2_dim_t				c_dim_measure
-		) {
-	ekf2_vmreal_t	L[EKF2_DIM_MAX_MEASUREMENT] = {0, };
-	ekf2_vmreal_t	Y[EKF2_DIM_MAX_MEASUREMENT] = {0, };
-	for(ekf2_dim_t i = c_dim_measure; i --> 0; )
-		for(ekf2_dim_t j = c_dim_measure; j --> 0; ) {
-			ekf2_vmreal_t	SM	= L[i] * L[j];
-			ekf2_real_t	S	= (*rd_a)[i][j];
-
-			for(ekf2_dim_t k = j; j --> 0; )
-				S -= SM[k];
-
-			if(i ^ j) {
-				L[i][j] = S / L[i][j];
-			} else {
-				if(S <= ekf2_real_sfx(0.))	return 1;
-				L[i][j]	= ekf2_real_sfx(sqrt)(S);
-			}
-		}
-
-	for(ekf2_dim_t col = c_dim_measure; col --> 0; ) {
-		ekf2_vmreal_t SV = 
-	}
-}
-
-
 enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t* ae2f_restrict const rd_z)
 {
 	ekf2_vmreal_t	Y;
 	ekf2_vsreal_t	H[EKF2_DIM_MAX_MEASUREMENT] = {0, };
 	ekf2_vmreal_t	S[EKF2_DIM_MAX_MEASUREMENT] = {0, };
 	ekf2_vmreal_t	S_INV[EKF2_DIM_MAX_MEASUREMENT] = {0, };
+	ekf2_vmreal_t	PHt[EKF2_DIM_MAX_STATE] = {0, };
+	ekf2_vmreal_t	K[EKF2_DIM_MAX_STATE] = {0, };
+	ekf2_vsreal_t	IKH[EKF2_DIM_MAX_STATE] = {0, };
+	ekf2_vsreal_t	P_NEW[EKF2_DIM_MAX_STATE] = {0, };
 
 	ae2f_ifnezerr(h_ekf)	return EKF2_RET_NIL_HANDLE;
 	Y = *rd_z - h_ekf->m_func_measurement.m_func(
@@ -191,5 +106,46 @@ enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t*
 	for(ekf2_dim_t i = h_ekf->m_dim_measurement; i --> 0; )
 		S[i] += h_ekf->m_mnoise[i];
 
-	
+	ae2f_ifnezerr_strict(s_mat_inv_sym(&S, &S_INV, h_ekf->m_dim_measurement))
+		return EKF2_RET_UPDATE_FAILED_INV_SYM;
+
+	s_mat_PHT(
+			&h_ekf->m_err_cov
+			, &H
+			, &PHt
+			, h_ekf->m_dim_measurement
+			, h_ekf->m_dim_state
+			);
+
+	for(ekf2_dim_t i = h_ekf->m_dim_state; i --> 0; ) {
+		for(ekf2_dim_t k = h_ekf->m_dim_measurement; k --> 0; )
+			for(ekf2_dim_t j = h_ekf->m_dim_measurement; j --> 0; )
+				K[i][j] += PHt[i][k] * S_INV[k][j];
+	}
+
+
+	for(ekf2_dim_t i = h_ekf->m_dim_state; i --> 0; ) {
+		const ekf2_vmreal_t Ky = K[i] * Y;
+		for(ekf2_dim_t j = h_ekf->m_dim_measurement; j --> 0; )
+			h_ekf->m_state_estimate[i] += Ky[j];
+	}
+
+	for(ekf2_dim_t i = h_ekf->m_dim_state; i --> 0; ) IKH[i][i] = ekf2_real_sfx(1.);
+	for(ekf2_dim_t i = h_ekf->m_dim_state; i --> 0; ) {
+		for(ekf2_dim_t k = h_ekf->m_dim_measurement; k --> 0; )
+			for(ekf2_dim_t j = h_ekf->m_dim_state; j --> 0; )
+				IKH[i][j] -= K[i][k] * H[k][j];
+	}
+
+	s_matmul_ss(
+			&IKH
+			, &h_ekf->m_err_cov
+			, &P_NEW
+			, h_ekf->m_dim_state
+			);
+
+	for(ekf2_dim_t i = EKF2_DIM_MAX_STATE; i --> 0; )
+		h_ekf->m_err_cov[i] = P_NEW[i];
+
+	return EKF2_RET_OK;
 }
