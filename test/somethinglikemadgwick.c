@@ -211,5 +211,28 @@ int main(void) {
 			(double)ctx.m_state_estimate[IDX_BY],
 			(double)ctx.m_state_estimate[IDX_BZ]);
 
+
+
+#define RAD_TO_DEG (180.0f / 3.1415926535f)
+#define	q0	ctx.m_state_estimate[IDX_Q0]
+#define	q1	ctx.m_state_estimate[IDX_Q1]
+#define	q2	ctx.m_state_estimate[IDX_Q2]
+#define	q3	ctx.m_state_estimate[IDX_Q3]
+	{
+		ekf2_real_t sinp = ekf2_real_sfx(2.) * (q0 * q2 - q3 * q1);
+		ekf2_real_t roll_deg = ekf2_real_sfx(atan2)(2.0f * (q0 * q1 + q2 * q3), 1.0f - 2.0f * (q1 * q1 + q2 * q2)) * RAD_TO_DEG;
+		ekf2_real_t yaw_deg =  ekf2_real_sfx(atan2)(2.0f * (q0 * q3 + q1 * q2), 1.0f - 2.0f * (q2 * q2 + q3 * q3)) * RAD_TO_DEG;
+		ekf2_real_t pitch_deg;
+
+		if (ekf2_real_sfx(fabs)(sinp) >= 1.0f) pitch_deg = ekf2_real_sfx(copysign)(90.0f, sinp);
+		else pitch_deg = ekf2_real_sfx(asin)(sinp) * RAD_TO_DEG;
+
+		printf("final degree:  [yaw %.4f pitch %.4f yaw %.4f]\n"
+				, (double)roll_deg
+				, (double)pitch_deg
+				, (double)yaw_deg
+				);
+	}
+
 	return 0;
 }
