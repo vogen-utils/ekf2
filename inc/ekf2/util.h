@@ -1,14 +1,14 @@
-#ifndef	ekf2_helpers_h
-#define	ekf2_helpers_h
+#ifndef	ekf2_util_h
+#define	ekf2_util_h
 
-#include <ekf2.h>
+#include "./common.h"
 #include <ae2f/cc/inline.h>
 #include <ae2f/cc/branches/strict.h>
 #include <math.h>
 
 extern ekf2_real_t	ekf2_real_sfx(sqrt)(const ekf2_real_t);
 
-ae2f_inline_f	static void s_matmul_ss(
+ae2f_inline_f	static void s_ekf2util_matmul_ss(
 		ekf2_vsreal_t (* ae2f_restrict const		ret)[EKF2_DIM_MAX_STATE],
 		const ekf2_vsreal_t (* ae2f_restrict const	rd_a)[EKF2_DIM_MAX_STATE],
 		const ekf2_vsreal_t (* ae2f_restrict const	rd_b)[EKF2_DIM_MAX_STATE],
@@ -25,7 +25,7 @@ ae2f_inline_f	static void s_matmul_ss(
 		(*ret)[i] = T[i];
 }
 
-ae2f_inline_f	static void s_matmul_trans_ss(
+ae2f_inline_f	static void s_ekf2util_matmul_trans_ss(
 		ekf2_vsreal_t (* ae2f_restrict const		ret)[EKF2_DIM_MAX_STATE],
 		const ekf2_vsreal_t (* ae2f_restrict const	rd_a)[EKF2_DIM_MAX_STATE],
 		const ekf2_vsreal_t (* ae2f_restrict const	rd_b)[EKF2_DIM_MAX_STATE],
@@ -45,7 +45,7 @@ ae2f_inline_f	static void s_matmul_trans_ss(
 		(*ret)[i] = T[i];
 }
 
-ae2f_inline_f void s_mat_HPHT(
+ae2f_inline_f static void s_ekf2util_mat_HPHT(
 		const ekf2_vsreal_t(* ae2f_restrict const rd_h)[EKF2_DIM_MAX_MEASUREMENT],
 		const ekf2_vsreal_t(* ae2f_restrict const rd_p)[EKF2_DIM_MAX_STATE],
 		ekf2_vmreal_t(* ae2f_restrict const ret)[EKF2_DIM_MAX_MEASUREMENT],
@@ -69,7 +69,7 @@ ae2f_inline_f void s_mat_HPHT(
 		}
 }
 
-ae2f_inline_f ekf2_bool_t	s_mat_inv_sym(
+ae2f_inline_f static ekf2_bool_t	s_ekf2util_mat_inv_sym(
 		const ekf2_vmreal_t (* const ae2f_restrict	rd_a)[EKF2_DIM_MAX_MEASUREMENT],
 		ekf2_vmreal_t (* const ae2f_restrict		ret_a_inv)[EKF2_DIM_MAX_MEASUREMENT],
 		const ekf2_dim_t				c_dim_measure
@@ -120,7 +120,7 @@ ae2f_inline_f ekf2_bool_t	s_mat_inv_sym(
 	return 0;
 }
 
-ae2f_inline_f 	static void s_mat_PHT(
+ae2f_inline_f 	static void s_ekf2util_mat_PHT(
 		const ekf2_vsreal_t (* ae2f_restrict const rd_p)[EKF2_DIM_MAX_STATE],
 		const ekf2_vsreal_t (* ae2f_restrict const rd_h)[EKF2_DIM_MAX_MEASUREMENT],
 		ekf2_vmreal_t (* ae2f_restrict const ret_k)[EKF2_DIM_MAX_STATE],

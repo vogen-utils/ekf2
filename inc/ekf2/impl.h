@@ -1,8 +1,10 @@
-#include "ekf2.h"
-#include "./helpers.h"
+#ifndef	ekf2_impl_h
+#define	ekf2_impl_h
+
+#include "./util.h"
 #include <ae2f/cc/branches/naive.h>
 
-enum EKF2_RET_ init_ekf2(
+ekf2_call enum EKF2_RET_ init_ekf2(
 		ekf2_ctx_t* ae2f_restrict h_ekf,
 		ekf2_dim_t	c_dim_state,
 		ekf2_dim_t	c_dim_measure,
@@ -40,7 +42,7 @@ enum EKF2_RET_ init_ekf2(
 	return EKF2_RET_OK;
 }
 
-enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vcreal_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt)
+ekf2_call enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vcreal_t* ae2f_restrict const rd_u, const ekf2_real_t c_dt)
 {
 	ekf2_vsreal_t	STATE_TRANS_JACRET[EKF2_DIM_MAX_STATE];
 
@@ -65,13 +67,13 @@ enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vcreal_t
 		ekf2_vsreal_t	JACRET_NOISE[EKF2_DIM_MAX_STATE];
 		ekf2_vsreal_t	JACRET_NOISE_JACRET[EKF2_DIM_MAX_STATE];
 
-		s_matmul_ss(
+		s_ekf2util_matmul_ss(
 				&JACRET_NOISE
 				, &STATE_TRANS_JACRET
 				, &h_ekf->m_err_cov
 				, h_ekf->m_dim_state);
 
-		s_matmul_trans_ss(
+		s_ekf2util_matmul_trans_ss(
 				&JACRET_NOISE_JACRET
 				, &JACRET_NOISE
 				, &STATE_TRANS_JACRET
@@ -85,7 +87,7 @@ enum EKF2_RET_ ekf2_predict(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vcreal_t
 	return EKF2_RET_OK;
 }
 
-enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t* ae2f_restrict const rd_z)
+ekf2_call enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t* ae2f_restrict const rd_z)
 {
 	ekf2_vmreal_t	Y;
 	ekf2_vsreal_t	H[EKF2_DIM_MAX_MEASUREMENT] = {0, };
@@ -103,7 +105,7 @@ enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t*
 			);
 
 	h_ekf->m_func_measurement.m_jac(&h_ekf->m_state_estimate, &H, h_ekf->m_usr_handle);
-	s_mat_HPHT(
+	s_ekf2util_mat_HPHT(
 			&H
 			, &h_ekf->m_err_cov
 			, &S
@@ -114,10 +116,10 @@ enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t*
 	for(ekf2_dim_t i = h_ekf->m_dim_measurement; i --> 0; )
 		S[i] += h_ekf->m_mnoise[i];
 
-	ae2f_ifnezerr_strict(s_mat_inv_sym(&S, &S_INV, h_ekf->m_dim_measurement))
+	ae2f_ifnezerr_strict(s_ekf2util_mat_inv_sym(&S, &S_INV, h_ekf->m_dim_measurement))
 		return EKF2_RET_UPDATE_FAILED_INV_SYM;
 
-	s_mat_PHT(
+	s_ekf2util_mat_PHT(
 			&h_ekf->m_err_cov
 			, &H
 			, &PHt
@@ -145,7 +147,7 @@ enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t*
 				IKH[i][j] -= K[i][k] * H[k][j];
 	}
 
-	s_matmul_ss(
+	s_ekf2util_matmul_ss(
 			&IKH
 			, &h_ekf->m_err_cov
 			, &P_NEW
@@ -167,3 +169,5 @@ enum EKF2_RET_ ekf2_update(ekf2_ctx_t* ae2f_restrict h_ekf, const ekf2_vmreal_t*
 
 	return EKF2_RET_OK;
 }
+
+#endif

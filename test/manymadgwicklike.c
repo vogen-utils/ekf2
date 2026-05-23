@@ -12,15 +12,19 @@
  * EKF2_DIM_MAX_CTL_EXP2 is bumped to 2 so the control vector can hold 3 elements.
  */
 
+#define DIM_STATE 7
+#define DIM_MEAS  3
+#define DIM_CTL   3
+
+#define	EKF2_DIM_MAX_STATE		DIM_STATE	+ 1
+#define	EKF2_DIM_MAX_CTL		DIM_CTL		+ 1
+#define	EKF2_DIM_MAX_MEASUREMENT	DIM_MEAS	+ 1
+
 #include <ekf2.h>
 #include <stdio.h>
 #include <math.h>
 
 enum { IDX_Q0 = 0, IDX_Q1, IDX_Q2, IDX_Q3, IDX_BX, IDX_BY, IDX_BZ };
-
-#define DIM_STATE 7
-#define DIM_MEAS  3
-#define DIM_CTL   3
 
 /* ---- state transition f(x, u, dt) ---- */
 static ekf2_vsreal_t f_state(

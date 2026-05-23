@@ -22,12 +22,12 @@ endif()
 
 ae2f_CoreLibFetch(ae2f Core main)
 
-add_library(Vogen-ekf2 ./lib/ekf2.c)
+add_library(Vogen-ekf2 INTERFACE)
 add_library(Vogen::ekf2 ALIAS Vogen-ekf2)
-target_include_directories(Vogen-ekf2 PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/inc>)
+target_include_directories(Vogen-ekf2 INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/inc>)
 target_link_libraries(Vogen-ekf2
-	PUBLIC ae2f::Core
-	PUBLIC m
+	INTERFACE ae2f::Core
+	INTERFACE m
 	)
 
 ae2f_CoreTestTent(Vogen-ekf2 test)
