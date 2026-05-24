@@ -68,14 +68,15 @@ typedef	struct {
 } ekf2_func_measurement_t;
 
 typedef struct {
-	void*				m_usr_handle;
-	ekf2_func_state_transition_t	m_func_state_transition;
-	ekf2_func_measurement_t		m_func_measurement;
-
 	ekf2_vsreal_t	m_state_estimate;
 	ekf2_vsreal_t	m_err_cov[EKF2_DIM_MAX_STATE];
 	ekf2_vsreal_t	m_pnoise[EKF2_DIM_MAX_STATE];
 	ekf2_vmreal_t	m_mnoise[EKF2_DIM_MAX_MEASUREMENT];
+
+	ekf2_func_state_transition_t	m_func_state_transition;
+	ekf2_func_measurement_t		m_func_measurement;
+
+	void*				m_usr_handle;
 
 	ekf2_dim_t	m_dim_state;
 	ekf2_dim_t	m_dim_measurement;

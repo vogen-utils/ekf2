@@ -224,7 +224,7 @@ int main(void) {
 		ekf2_real_t yaw_deg =  ekf2_real_sfx(atan2)(2.0f * (q0 * q3 + q1 * q2), 1.0f - 2.0f * (q2 * q2 + q3 * q3)) * RAD_TO_DEG;
 		ekf2_real_t pitch_deg;
 
-		if (ekf2_real_sfx(fabs)(sinp) >= 1.0f) pitch_deg = ekf2_real_sfx(copysign)(90.0f, sinp);
+		if (ekf2_real_sfx(fabs)(sinp) > 1.0f) pitch_deg = ekf2_real_sfx(copysign)(90.0f, sinp);
 		else pitch_deg = ekf2_real_sfx(asin)(sinp) * RAD_TO_DEG;
 
 		printf("final degree:  [yaw %.4f pitch %.4f yaw %.4f]\n"
